@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>up4free - Free File Storage</title>
+    <style>
+        :root {
+            --main-bg-color: #ffffff;
+            --secondary-bg-color: #e3f2fd;
+            --text-color: #000;
+            --button-bg-color: #1976d2;
+            --button-text-color: #fff;
+            --button-bg-color-success: #4caf50;
+            --progress-bg: #90caf9;
+            --progress-fill: #1976d2;
+        }
+
+        [data-theme="dark"] {
+            --main-bg-color: #121212;
+            --secondary-bg-color: #1e1e1e;
+            --text-color: #ffffff;
+            --button-bg-color: #bb86fc;
+            --button-text-color: #000;
+            --button-bg-color-success: #03dac6;
+            --progress-bg: #333;
+            --progress-fill: #bb86fc;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--main-bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .upload-container {
+            background-color: var(--secondary-bg-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            transition: background-color 0.3s;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .file-dropzone {
+            border: 2px dashed var(--progress-fill);
+            border-radius: 15px;
+            padding: 20px;
+            background-color: var(--main-bg-color);
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .file-dropzone.dragover {
+            background-color: var(--progress-bg);
+            border-color: var(--button-bg-color);
+        }
+
+        .file-dropzone p {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: var(--progress-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 20px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background-color: var(--progress-fill);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .success {
+            color: var(--progress-fill);
+            margin-top: 10px;
+            display: none;
+        }
+
+        .file-link {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .file-link a {
+            color: #3498db;
+            text-decoration: none;
+            word-wrap: break-word;
+        }
+
+        .file-link a:hover {
+            text-decoration: underline;
+        }
+
+        .input-container {
+            margin-bottom: 15px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+            margin: 0 5px;
+        }
+
+        button:hover {
+            background-color: #1565c0;
+        }
+
+        .button-success {
+            background-color: var(--button-bg-color-success);
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .dark-mode-toggle:hover {
+            background-color: #1565c0;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            /* border-radius: 20px; */
+            overflow: hidden;
+            display: none; /* Hidden initially */
+        }
+
+        .file-table th,
+        .file-table td {
+            border: none;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .file-table tr:nth-child(even) {
+            background-color: var(--secondary-bg-color);
+        }
+
+        .file-table tr:hover {
+            background-color: var(--progress-bg);
+        }
+
+        .file-table button {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .table-container {
+            max-height: 400px; /* Adjust as needed */
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <div class="upload-container">
+        <h1>up4free</h1>
+
+        <div class="file-dropzone" id="fileDropzone">
+            <p>Drag & drop your files here or click to select files</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-bar-inner"></div>
+        </div>
+
+        <button onclick="uploadFiles()">Upload</button>
+        <div class="success">Files uploaded successfully!</div>
+
+        <div class="table-container">
+            <table class="file-table" id="fileTable">
+                <!-- Table will be populated by JavaScript -->
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const fileDropzone = document.getElementById('fileDropzone');
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+
+        fileDropzone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileDropzone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            fileDropzone.classList.add('dragover');
+        });
+
+        fileDropzone.addEventListener('dragleave', () => {
+            fileDropzone.classList.remove('dragover');
+        });
+
+        fileDropzone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            fileDropzone.classList.remove('dragover');
+            handleFiles(event.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (event) => {
+            handleFiles(event.target.files);
+        });
+
+        let selectedFiles = [];
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            const fileList = selectedFiles.map(file => `${file.name.substring(0, 7)}...${file.name.split('.').pop()}`).join('<br>');
+            fileDropzone.innerHTML = `<p>${fileList}</p>`;
+        }
+
+        function uploadFiles() {
+            const progressBar = document.querySelector('.progress-bar');
+            const progressBarInner = document.querySelector('.progress-bar-inner');
+            const successMessage = document.querySelector('.success');
+
+            if (selectedFiles.length === 0) {
+                alert('Please select files to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append('files[]', file));
+
+            progressBar.style.display = 'block';
+            progressBarInner.style.width = '0%';
+            successMessage.style.display = 'none';
+
+            fetch('upload.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                progressBarInner.style.width = '100%';
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    renderTable(data);
+                }, 500);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function renderTable(files) {
+            if (files.length > 0) {
+                document.getElementById('fileTable').style.display = 'table';
+            }
+            const fileTable = document.getElementById('fileTable');
+            fileTable.innerHTML = ''; // Clear previous rows
+
+            files.forEach(file => {
+                const fileSizeMB = (file.fileSize / (1024 * 1024)).toFixed(2);
+                const fileRow = document.createElement('tr');
+                fileRow.innerHTML = `
+                    <td>${file.fileName.substring(0, 7)}...${file.fileName.split('.').pop()}</td>
+                    <td>${fileSizeMB} MB</td>
+                    <td>${file.uploadDate}</td>
+                    <td>
+                        <button onclick="copyLink('${file.fileUrl}')">Copy Link</button>
+                        <button onclick="openFile('${file.fileUrl}')">Open</button>
+                    </td>
+                `;
+                fileTable.appendChild(fileRow);
+            });
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            });
+        }
+
+        function openFile(url) {
+            window.open(url, '_blank');
+        }
+
+        function toggleDarkMode() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+        }
+    </script>
+</body>
+</html>
