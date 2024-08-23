@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'fileUrl' => $uploadDirectory . $fileName
                 ];
             } else {
+                error_log('Failed to move uploaded file: ' . $fileName); // Log error
                 http_response_code(500);
                 echo json_encode(['error' => 'Failed to upload file.']);
                 exit;
