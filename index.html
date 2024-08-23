@@ -167,8 +167,6 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            /* border-radius: 20px; */
-            overflow: hidden;
             display: none; /* Hidden initially */
         }
 
@@ -307,29 +305,23 @@
                     <td>${file.fileName.substring(0, 7)}...${file.fileName.split('.').pop()}</td>
                     <td>${fileSizeMB} MB</td>
                     <td>${file.uploadDate}</td>
-                    <td>
-                        <button onclick="copyLink('${file.fileUrl}')">Copy Link</button>
-                        <button onclick="openFile('${file.fileUrl}')">Open</button>
-                    </td>
+                    <td><a href="${file.fileUrl}" target="_blank">Open</a></td>
+                    <td><button onclick="copyLink('${file.fileUrl}')">Copy Link</button></td>
                 `;
                 fileTable.appendChild(fileRow);
             });
         }
 
-        function copyLink(url) {
-            navigator.clipboard.writeText(url).then(() => {
-                alert('Link copied to clipboard!');
+        function copyLink(fileUrl) {
+            navigator.clipboard.writeText(fileUrl).then(() => {
+                alert('Link copied to clipboard');
             });
         }
 
-        function openFile(url) {
-            window.open(url, '_blank');
-        }
-
         function toggleDarkMode() {
-            const currentTheme = document.body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', newTheme);
+            const isDarkMode = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDarkMode ? 'light' : 'dark');
+            document.querySelector('.dark-mode-toggle').textContent = isDarkMode ? '🌙' : '🌞';
         }
     </script>
 </body>
